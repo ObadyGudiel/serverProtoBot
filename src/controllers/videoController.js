@@ -1,4 +1,3 @@
-// src/controllers/videoController.js
 import { bucket } from "../config/credentiales.js";
 
 export const descargarVideo = async (req, res) => {
@@ -8,8 +7,10 @@ export const descargarVideo = async (req, res) => {
 
     const file = bucket.file(path);
 
-    // 🔹 Forzar headers de descarga
-    res.setHeader("Content-Disposition", 'attachment; filename="video_evento.mp4"');
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${path.split("/").pop()}"`
+    );
     res.setHeader("Content-Type", "video/mp4");
 
     const stream = file.createReadStream();

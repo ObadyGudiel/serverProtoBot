@@ -3,6 +3,8 @@ import { bucket } from "../config/credentiales.js";
 export const descargarVideo = async (req, res) => {
   try {
     let { path } = req.query;
+
+    console.log("URL ", path)
     if (!path) return res.status(400).send("Falta el parámetro 'path'");
 
     // Si viene codificado (por ejemplo, con %2F), decodificarlo

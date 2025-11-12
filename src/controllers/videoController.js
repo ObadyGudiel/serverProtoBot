@@ -8,9 +8,15 @@ export const descargarVideo = async (req, res) => {
       return res.status(400).send("❌ Falta el parámetro 'path'.");
     }
 
-    // Decodificar si viene con %2F o caracteres especiales
-    path = decodeURIComponent(path);
-    console.log("📥 Solicitando descarga del archivo:", path);
+    console.log("📥 Path recibido:", path);
+
+    // ⚙️ Asegurarse de NO decodificar %2F
+    // Solo decodificamos si hay un doble encoding
+    if (path.includes("%252F")) {
+      path = decodeURIComponent(path);
+    }
+
+    console.log("📁 Path usado en el bucket:", path);
 
     const file = bucket.file(path);
 
@@ -21,19 +27,19 @@ export const descargarVideo = async (req, res) => {
       return res.status(404).send("El archivo solicitado no existe.");
     }
 
-    // Obtener metadata (por ejemplo, tipo MIME)
+    // Obtener metadata (tipo MIME)
     const [metadata] = await file.getMetadata();
     const contentType = metadata.contentType || "application/octet-stream";
-    const fileName = path.split("/").pop();
+    const fileName = path.split("%2F").pop(); // 👈 importante: separar por %2F
 
     // Cabeceras para forzar descarga
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(fileName)}"`
+      `attachment; filename="${decodeURIComponent(fileName)}"`
     );
     res.setHeader("Content-Type", contentType);
 
-    // Crear stream de lectura y enviar al cliente
+    // Crear stream y enviar el archivo
     const stream = file.createReadStream();
 
     stream.on("error", (err) => {

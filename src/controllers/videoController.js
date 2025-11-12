@@ -2,8 +2,11 @@ import { bucket } from "../config/credentiales.js";
 
 export const descargarVideo = async (req, res) => {
   try {
-    const { path } = req.query;
+    let { path } = req.query;
     if (!path) return res.status(400).send("Falta el parámetro 'path'");
+
+    // Si viene codificado (por ejemplo, con %2F), decodificarlo
+    path = decodeURIComponent(path);
 
     const file = bucket.file(path);
 
@@ -14,9 +17,14 @@ export const descargarVideo = async (req, res) => {
     res.setHeader("Content-Type", "video/mp4");
 
     const stream = file.createReadStream();
+    stream.on("error", (err) => {
+      console.error("Error leyendo el archivo:", err);
+      res.status(500).send("Error al obtener el archivo.");
+    });
+
     stream.pipe(res);
   } catch (error) {
     console.error("Error al descargar video:", error);
-    res.status(500).send("Error al obtener el archivo.");
+    res.status(500).send("Error interno del servidor.");
   }
 };
